@@ -42,7 +42,6 @@ add_subdirectory(ivi-layermanagement-api/test)
 add_subdirectory(ivi-layermanagement-examples)
 add_subdirectory(ivi-layermanagement-api/ilmInput)
 add_subdirectory(ivi-input-modules/ivi-input-controller)
-add_subdirectory(ivi-id-agent-modules/ivi-id-agent)
 
 
 #=============================================================================================
