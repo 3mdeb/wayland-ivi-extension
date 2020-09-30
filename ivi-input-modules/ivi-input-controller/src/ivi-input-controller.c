@@ -31,7 +31,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "plugin-registry.h"
+//#include "plugin-registry.h"
 #include "ilm_types.h"
 
 #include "ivi-input-server-protocol.h"
@@ -918,7 +918,7 @@ destroy_seat(struct seat_ctx *ctx_seat)
 {
     struct ivisurface *surf;
     struct wl_resource *resource;
-    weston_log("ivi-input-controller: Enter to destroy seat. Seat name: %s\n",ctx_seat->west_seat->seat_name);
+    weston_log("ivi-input-controller: Enter to destroy seat. Seat name: %d\n", ctx_seat->west_seat->seat_name);
     if (ctx_seat->keyboard_grab.keyboard) {
     	keyboard_grab_cancel(&ctx_seat->keyboard_grab);
         weston_keyboard_end_grab(ctx_seat->keyboard_grab.keyboard);
@@ -946,13 +946,13 @@ destroy_seat(struct seat_ctx *ctx_seat)
     wl_resource_for_each(resource, &ctx_seat->input_ctx->resource_list) {
         ivi_input_send_seat_destroyed(resource,
                                       ctx_seat->west_seat->seat_name);
-        weston_log("ivi-input-controller: ivi input send seat destroyed %s\n", ctx_seat->west_seat->seat_name);
+        weston_log("ivi-input-controller: ivi input send seat destroyed %d\n", ctx_seat->west_seat->seat_name);
     }
     wl_list_remove(&ctx_seat->destroy_listener.link);
     wl_list_remove(&ctx_seat->updated_caps_listener.link);
     wl_list_remove(&ctx_seat->seat_node);
-    free(ctx_seat);
     weston_log("ivi-input-controller: Free seat. Exit destroy_seat\n");
+    free(ctx_seat);
 }
 
 static void
@@ -977,7 +977,7 @@ handle_seat_create(struct wl_listener *listener, void *data)
         weston_log("%s: Failed to allocate memory\n", __FUNCTION__);
         return;
     }
-    weston_log("ivi-input-controller: Enter handle_seat_create\n");
+    weston_log("ivi-input-controller: Enter handle_seat_create %s\n", seat->seat_name);
     ctx->input_ctx = input_ctx;
     ctx->west_seat = seat;
 
