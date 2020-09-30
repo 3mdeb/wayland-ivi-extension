@@ -31,7 +31,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "plugin-registry.h"
+//#include "plugin-registry.h"
 #include "ilm_types.h"
 
 #include "ivi-input-server-protocol.h"
@@ -124,6 +124,7 @@ add_accepted_seat(struct ivisurface *surface, struct seat_ctx *seat_ctx)
         if (NULL != st_focus) {
             st_focus->seat_ctx = seat_ctx;
             wl_list_insert(&surface->accepted_seat_list, &st_focus->link);
+            weston_log("add_accepted_seat: wl_list_insert: %s\n",seat_ctx->west_seat->seat_name);
             ret = 1;
        } else {
             weston_log("%s Failed to allocate memory for seat addition of surface %d",
@@ -145,12 +146,12 @@ remove_if_seat_accepted(struct ivisurface *surface, struct seat_ctx *seat_ctx)
     int ret = 0;
 
     struct seat_focus *st_focus = get_accepted_seat(surface, seat_ctx);
-
+    weston_log("ivi-input-controller: remove_if_seat_accepted. Seat name: %s\n", seat_ctx->west_seat->seat_name);
     if (NULL != st_focus) {
         ret = 1;
         wl_list_remove(&st_focus->link);
         free(st_focus);
-
+        weston_log("Remove seat_focus - seat is accepted\n");
     }
     return ret;
 }
@@ -917,17 +918,21 @@ destroy_seat(struct seat_ctx *ctx_seat)
 {
     struct ivisurface *surf;
     struct wl_resource *resource;
+    weston_log("ivi-input-controller: Enter to destroy seat. Seat name: %d\n", ctx_seat->west_seat->seat_name);
     if (ctx_seat->keyboard_grab.keyboard) {
     	keyboard_grab_cancel(&ctx_seat->keyboard_grab);
         weston_keyboard_end_grab(ctx_seat->keyboard_grab.keyboard);
+        weston_log("ivi-input-controller: keyboard grab cancel\n");
     }
     if (ctx_seat->pointer_grab.pointer) {
     	pointer_grab_cancel(&ctx_seat->pointer_grab);
         weston_pointer_end_grab(ctx_seat->pointer_grab.pointer);
+        weston_log("ivi-input-controller: pointer grab cancel\n");
     }
     if (ctx_seat->touch_grab.touch) {
     	touch_grab_cancel(&ctx_seat->touch_grab);
         weston_touch_end_grab(ctx_seat->touch_grab.touch);
+        weston_log("ivi-input-controller: touch grab cancel\n");
     }
 
     /* Remove seat acceptance from surfaces which have input acceptance from
@@ -935,15 +940,18 @@ destroy_seat(struct seat_ctx *ctx_seat)
     wl_list_for_each(surf, &ctx_seat->input_ctx->ivishell->list_surface,
                      link) {
          remove_if_seat_accepted(surf, ctx_seat);
+         weston_log("ivi-input-controller: remove if seat accepted\n");
     }
 
     wl_resource_for_each(resource, &ctx_seat->input_ctx->resource_list) {
         ivi_input_send_seat_destroyed(resource,
                                       ctx_seat->west_seat->seat_name);
+        weston_log("ivi-input-controller: ivi input send seat destroyed %d\n", ctx_seat->west_seat->seat_name);
     }
     wl_list_remove(&ctx_seat->destroy_listener.link);
     wl_list_remove(&ctx_seat->updated_caps_listener.link);
     wl_list_remove(&ctx_seat->seat_node);
+    weston_log("ivi-input-controller: Free seat. Exit destroy_seat\n");
     free(ctx_seat);
 }
 
@@ -969,7 +977,7 @@ handle_seat_create(struct wl_listener *listener, void *data)
         weston_log("%s: Failed to allocate memory\n", __FUNCTION__);
         return;
     }
-
+    weston_log("ivi-input-controller: Enter handle_seat_create %s\n", seat->seat_name);
     ctx->input_ctx = input_ctx;
     ctx->west_seat = seat;
 
@@ -988,6 +996,7 @@ handle_seat_create(struct wl_listener *listener, void *data)
         ivi_input_send_seat_created(resource,
                                     seat->seat_name,
                                     get_seat_capabilities(seat));
+        weston_log("ivi-input-controller: ivi_input_send_seat_created %s\n", seat->seat_name);
     }
 
     /* If default seat is created, we have to add it to the accepted_seat_list
@@ -998,6 +1007,7 @@ handle_seat_create(struct wl_listener *listener, void *data)
             send_input_acceptance(input_ctx,
                                  interface->get_id_of_surface(surf->layout_surface),
                                  "default", ILM_TRUE);
+            weston_log("ivi-input-controller: default seat is created\n");
         }
     }
 }
@@ -1238,6 +1248,7 @@ destroy_input_context(struct input_context *ctx)
 
     wl_list_for_each_safe(seat, tmp, &ctx->seat_list, seat_node) {
         destroy_seat(seat);
+        weston_log("Seat destroyed.\n");
     }
 
     wl_list_for_each_safe(surf_ctx, tmp_surf_ctx,
@@ -1249,11 +1260,13 @@ destroy_input_context(struct input_context *ctx)
     wl_list_remove(&ctx->surface_created.link);
     wl_list_remove(&ctx->surface_destroyed.link);
     wl_list_remove(&ctx->compositor_destroy_listener.link);
+    weston_log("Links to seat create, surface created/destroyed and compositor destroy listener were removed.\n");
 
     wl_resource_for_each_safe(resource, tmp_resource, &ctx->resource_list) {
         /*We have set destroy function for this resource.
          * The below api will call unbind_resource_controller and
          * free up the controller structure*/
+        weston_log("Destroy wl resource...\n");
         wl_resource_destroy(resource);
     }
     free(ctx);
@@ -1263,7 +1276,7 @@ static void
 input_controller_deinit(struct input_context *ctx)
 {
     int deinit_stage;
-
+    weston_log("Input controller deinicialization process started...\n");
     if (NULL == ctx) {
         return;
     }
@@ -1273,10 +1286,12 @@ input_controller_deinit(struct input_context *ctx)
         switch (deinit_stage) {
         case 1:
             /*Nothing to free for this stage*/
+            weston_log("Nothing to free for this stage...\n");
             break;
 
         case 0:
             destroy_input_context(ctx);
+            weston_log("Input context destroyed...\n");
             break;
 
         default:
