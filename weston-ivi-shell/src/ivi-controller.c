@@ -95,7 +95,7 @@ static void
 clear_notification_list(struct wl_list* notification_list)
 {
     struct notification *not, *next;
-
+    weston_log("ivi-controller: clear_notification_list\n");
     wl_list_for_each_safe(not, next, notification_list, link) {
          wl_list_remove(&not->layout_link);
          wl_list_remove(&not->link);
@@ -106,6 +106,7 @@ clear_notification_list(struct wl_list* notification_list)
 static void
 destroy_ivicontroller_screen(struct wl_resource *resource)
 {
+    weston_log("ivi-controller: destroy_ivicontroller_screen\n");
     wl_list_remove(wl_resource_get_link(resource));
 }
 
@@ -113,7 +114,7 @@ static void
 unbind_resource_controller(struct wl_resource *resource)
 {
     struct ivicontroller *controller = wl_resource_get_user_data(resource);
-
+    weston_log("ivi-controller: unbind_resource_controller\n");
     wl_list_remove(&controller->link);
 
     clear_notification_list(&controller->layer_notifications);
@@ -1100,6 +1101,7 @@ static void
 controller_screen_destroy(struct wl_client *client,
                           struct wl_resource *resource)
 {
+    weston_log("ivi-controller: controller screen destroy\n");
     (void)client;
     wl_resource_destroy(resource);
 }
@@ -1111,7 +1113,7 @@ controller_screen_clear(struct wl_client *client,
     struct iviscreen *iviscrn = wl_resource_get_user_data(resource);
     const struct ivi_layout_interface *lyt;
     (void)client;
-
+    weston_log("ivi-controller: controller screen clear\n");
     if (!iviscrn) {
         ivi_wm_screen_send_error(resource, IVI_WM_SCREEN_ERROR_NO_SCREEN,
                                  "the output is already destroyed");
@@ -1541,7 +1543,7 @@ static void
 destroy_screen(struct iviscreen *iviscrn)
 {
     struct wl_resource *resource, *next;
-
+    weston_log("ivi-controller: destroy_screen\n");
     wl_resource_for_each_safe(resource, next, &iviscrn->resource_list) {
         wl_resource_set_destructor(resource, NULL);
         wl_resource_destroy(resource);
@@ -1558,7 +1560,7 @@ output_destroyed_event(struct wl_listener *listener, void *data)
     struct iviscreen *iviscrn = NULL;
     struct iviscreen *next = NULL;
     struct weston_output *destroyed_output = (struct weston_output*)data;
-
+    weston_log("ivi-controller: output_destroyed_event\n");
     wl_list_for_each_safe(iviscrn, next, &shell->list_screen, link) {
         if (iviscrn->output == destroyed_output)
             destroy_screen(iviscrn);
@@ -1585,6 +1587,7 @@ output_created_event(struct wl_listener *listener, void *data)
     struct ivishell *shell = wl_container_of(listener, shell, output_created);
     struct weston_output *created_output = (struct weston_output*)data;
 
+    weston_log("ivi-controller: output_created_event\n");
     create_screen(shell, created_output);
 
     if (shell->bkgnd_view)
@@ -1941,6 +1944,8 @@ destroy_screen_ids(struct ivishell *shell)
 {
 	struct screen_id_info *screen_info = NULL;
 
+    weston_log("ivi-controller: destroy_screen_ids\n");
+
 	wl_array_for_each(screen_info, &shell->screen_ids) {
 		free(screen_info->screen_name);
 	}
@@ -2023,6 +2028,7 @@ ivi_shell_destroy(struct wl_listener *listener, void *data)
 	struct ivishell *shell =
 		wl_container_of(listener, shell, destroy_listener);
 
+    weston_log("ivi-controller: ivi_shell_destroy\n");
 	wl_list_remove(&shell->destroy_listener.link);
 
 	wl_list_remove(&shell->output_created.link);
@@ -2160,7 +2166,7 @@ launch_client_process(void *data)
     struct ivishell *shell =
             (struct ivishell *)data;
     char option[128] = {0};
-
+    weston_log("ivi-controller: launch_client_process\n");
     sprintf(option, "%d", shell->bkgnd_surface_id);
     setenv(IVI_CLIENT_SURFACE_ID_ENV_NAME, option, 0x1);
 
