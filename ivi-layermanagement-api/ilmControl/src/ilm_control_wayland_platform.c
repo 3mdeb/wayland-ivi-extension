@@ -755,6 +755,7 @@ input_listener_seat_created(void *data,
                             const char *name,
                             uint32_t capabilities)
 {
+    fprintf(stderr, "INFO: seat %s is going to be created!\n", name);
     struct wayland_context *ctx = data;
     struct seat_context *seat;
     seat = find_seat(&ctx->list_seat, name);
@@ -841,6 +842,7 @@ input_listener_input_acceptance(void *data,
             break;
         }
     }
+    fprintf (stderr, "INFO: input acceptance for seat %s on surface %d\n",seat, surface);
 
     if (!surface_found) {
         fprintf(stderr, "Warning: input acceptance event received for "
@@ -855,11 +857,13 @@ input_listener_input_acceptance(void *data,
 
         if (accepted != ILM_TRUE) {
             /* Remove this from the accepted seats */
+            fprintf (stderr, "INFO: seat %s not accepted from surface %d\n", seat, surface);
             free(accepted_seat->seat_name);
             wl_list_remove(&accepted_seat->link);
             free(accepted_seat);
             return;
         }
+        fprintf (stderr, "INFO: check seat %s\n", seat);
         accepted_seat_found = 1;
     }
 
