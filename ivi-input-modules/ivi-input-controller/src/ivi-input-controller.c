@@ -1000,6 +1000,14 @@ handle_seat_create(struct wl_listener *listener, void *data)
                                  "default", ILM_TRUE);
         }
     }
+    if (!strcmp(ctx->west_seat->seat_name, "sshare")) {
+        wl_list_for_each(surf, &input_ctx->ivishell->list_surface, link) {
+            add_accepted_seat(surf, ctx);
+            send_input_acceptance(input_ctx,
+                                 interface->get_id_of_surface(surf->layout_surface),
+                                 "sshare", ILM_TRUE);
+        }
+    }
 }
 
 static void
@@ -1050,6 +1058,13 @@ handle_surface_create(struct wl_listener *listener, void *data)
         send_input_acceptance(input_ctx,
                               interface->get_id_of_surface(ivisurface->layout_surface),
                               "default", ILM_TRUE);
+    }
+    seat_ctx = input_ctrl_get_seat_ctx(input_ctx, "sshare");
+    if (seat_ctx) {
+        add_accepted_seat(ivisurface, seat_ctx);
+        send_input_acceptance(input_ctx,
+                              interface->get_id_of_surface(ivisurface->layout_surface),
+                              "sshare", ILM_TRUE);
     }
 }
 
